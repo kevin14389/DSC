@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Teams DSC — Exemple</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        header { background: #1a3a5c; color: white; padding: 24px 32px; border-radius: 8px 8px 0 0; }
+        header h1 { font-size: 22px; font-weight: 600; }
+        header p { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-top: 20px; overflow: hidden; }
+        .card-header { background: #2c3e50; color: white; padding: 12px 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #ecf0f1; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #bdc3c7; }
+        td { padding: 9px 12px; border-bottom: 1px solid #ecf0f1; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f9fafb; }
+        .status-bar { display: flex; align-items: center; gap: 24px; padding: 16px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-top: 20px; }
+        .status-bar .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+        .status-bar .value { font-size: 14px; font-weight: 600; }
+        .badge-ok    { background: #27ae60; color: white; padding: 4px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; display: inline-block; }
+        .badge-alert { background: #e74c3c; color: white; padding: 4px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; display: inline-block; }
+        .val-ok { color: #27ae60; }
+        .val-ko { color: #e74c3c; }
+        footer { text-align: center; font-size: 11px; color: #aaa; margin-top: 30px; padding-bottom: 20px; }
+        ul { margin: 0; padding-left: 18px; }
+        li { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Rapport de surveillance — Configuration Teams</h1>
+        <p>Généré le 22/06/2026 08:00:12 &nbsp;|&nbsp; Module : MicrosoftTeams v6.7.0</p>
+    </header>
+
+    <div class="status-bar">
+        <div>
+            <div class="label">Statut du dernier contrôle</div>
+            <div class="value"><span class="badge-alert">&#9888; DERIVE DETECTEE</span></div>
+        </div>
+        <div>
+            <div class="label">Dernier contrôle</div>
+            <div class="value">2026-06-22 08:00:05</div>
+        </div>
+        <div>
+            <div class="label">Dérives détectées</div>
+            <div class="value" style="color:#e74c3c;">3</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Historique des mises à jour du module Teams</div>
+        <div class="card-body">
+            <table>
+                <thead>
+                    <tr><th>Date de détection</th><th>Version</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>2026-06-22 08:00:12</td><td>MicrosoftTeams 6.7.0</td></tr>
+                    <tr><td>2026-05-14 08:00:09</td><td>MicrosoftTeams 6.6.1</td></tr>
+                    <tr><td>2026-04-02 08:00:11</td><td>MicrosoftTeams 6.5.0</td></tr>
+                    <tr><td>2026-02-18 08:00:07</td><td>MicrosoftTeams 6.4.2</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Historique des dérives de configuration</div>
+        <div class="card-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:170px;">Date</th>
+                        <th style="width:80px; text-align:center;">Nb écarts</th>
+                        <th>Détail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="vertical-align:top;">2026-06-22 08:00:05</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:700;">3</td>
+                        <td>
+                            <ul>
+                                <li><strong>[TeamsMeetingPolicy] AllowAnonymousUsersToJoinMeeting</strong> — Souhaité : <span class="val-ok">false</span> / Actuel : <span class="val-ko">true</span></li>
+                                <li><strong>[TeamsCallingPolicy] AllowCloudRecordingForCalls</strong> — Souhaité : <span class="val-ok">false</span> / Actuel : <span class="val-ko">true</span></li>
+                                <li><strong>[TeamsChannelsPolicy] AllowSharedChannelCreation</strong> — Souhaité : <span class="val-ok">false</span> / Actuel : <span class="val-ko">true</span></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:top;">2026-05-03 08:00:04</td>
+                        <td style="text-align:center; color:#e74c3c; font-weight:700;">1</td>
+                        <td>
+                            <ul>
+                                <li><strong>[TeamsMessagingPolicy] GiphyRatingType</strong> — Souhaité : <span class="val-ok">Moderate</span> / Actuel : <span class="val-ko">Strict</span></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:top;">2026-03-11 08:00:08</td>
+                        <td style="text-align:center; color:#e67e22; font-weight:700;">2</td>
+                        <td>
+                            <ul>
+                                <li><strong>[TeamsClientConfiguration] AllowGuestUser</strong> — Souhaité : <span class="val-ok">true</span> / Actuel : <span class="val-ko">false</span></li>
+                                <li><strong>[TeamsMeetingPolicy] AutoAdmittedUsers</strong> — Souhaité : <span class="val-ok">EveryoneInCompany</span> / Actuel : <span class="val-ko">Everyone</span></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align:top;">2025-12-19 08:00:02</td>
+                        <td style="text-align:center; color:#27ae60; font-weight:700;">0</td>
+                        <td style="color:#888; font-style:italic;">Aucune dérive — configuration conforme</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>Surveillance automatique Teams DSC — Rapport généré automatiquement</footer>
+
+</div>
+</body>
+</html>
