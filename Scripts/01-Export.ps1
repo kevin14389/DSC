@@ -12,8 +12,6 @@ $ErrorActionPreference = "Stop"
 Write-Host "[Export] Connexion au tenant..." -ForegroundColor Cyan
 
 # Méthode recommandée : certificat (plus sécurisé, pas d'expiration de secret)
-# Le certificat doit être installé dans le magasin Local Machine ou Current User du serveur.
-# Pour trouver le Thumbprint : Get-ChildItem Cert:\LocalMachine\My  (ou Cert:\CurrentUser\My)
 $AppId       = "PLACEHOLDER_APP_ID"          # <-- Ton AppId (GUID de l'App Registration)
 $TenantId    = "PLACEHOLDER_TENANT_ID"       # <-- Ton TenantId (GUID ou domaine)
 $Thumbprint  = "PLACEHOLDER_CERT_THUMBPRINT" # <-- Thumbprint du certificat (40 caractères hex)
@@ -23,8 +21,19 @@ $Thumbprint  = "PLACEHOLDER_CERT_THUMBPRINT" # <-- Thumbprint du certificat (40 
 # $SecureSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
 # $Credential   = New-Object System.Management.Automation.PSCredential($AppId, $SecureSecret)
 
+# Chargement explicite du certificat depuis le magasin Windows
+# Le module MicrosoftTeams attend un objet X509Certificate2, pas juste le thumbprint
+$Certificate = Get-ChildItem -Path "Cert:\CurrentUser\My\$Thumbprint" -ErrorAction SilentlyContinue
+if (-not $Certificate) {
+    $Certificate = Get-ChildItem -Path "Cert:\LocalMachine\My\$Thumbprint" -ErrorAction SilentlyContinue
+}
+if (-not $Certificate) {
+    Write-Error "[Export] Certificat introuvable (thumbprint : $Thumbprint). Vérifier qu'il est bien importé dans Cert:\CurrentUser\My ou Cert:\LocalMachine\My."
+    exit 1
+}
+
 try {
-    Connect-MicrosoftTeams -TenantId $TenantId -ApplicationId $AppId -CertificateThumbprint $Thumbprint
+    Connect-MicrosoftTeams -TenantId $TenantId -ApplicationId $AppId -Certificate $Certificate
     # Alternative secret : Connect-MicrosoftTeams -TenantId $TenantId -Credential $Credential
 }
 catch {
