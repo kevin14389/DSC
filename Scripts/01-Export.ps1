@@ -11,15 +11,21 @@ $ErrorActionPreference = "Stop"
 # --- Connexion au tenant -------------------------------------------------------
 Write-Host "[Export] Connexion au tenant..." -ForegroundColor Cyan
 
-$AppId     = "PLACEHOLDER_APP_ID"          # <-- Ton AppId (GUID)
-$AppSecret = "PLACEHOLDER_APP_SECRET"      # <-- Ton secret (ou chemin vers le certificat)
-$TenantId  = "PLACEHOLDER_TENANT_ID"       # <-- Ton TenantId (GUID ou domaine)
+# Méthode recommandée : certificat (plus sécurisé, pas d'expiration de secret)
+# Le certificat doit être installé dans le magasin Local Machine ou Current User du serveur.
+# Pour trouver le Thumbprint : Get-ChildItem Cert:\LocalMachine\My  (ou Cert:\CurrentUser\My)
+$AppId       = "PLACEHOLDER_APP_ID"          # <-- Ton AppId (GUID de l'App Registration)
+$TenantId    = "PLACEHOLDER_TENANT_ID"       # <-- Ton TenantId (GUID ou domaine)
+$Thumbprint  = "PLACEHOLDER_CERT_THUMBPRINT" # <-- Thumbprint du certificat (40 caractères hex)
 
-$SecureSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
-$Credential   = New-Object System.Management.Automation.PSCredential($AppId, $SecureSecret)
+# Méthode alternative : secret (décommenter et commenter le bloc certificat si nécessaire)
+# $AppSecret    = "PLACEHOLDER_APP_SECRET"
+# $SecureSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
+# $Credential   = New-Object System.Management.Automation.PSCredential($AppId, $SecureSecret)
 
 try {
-    Connect-MicrosoftTeams -TenantId $TenantId -Credential $Credential
+    Connect-MicrosoftTeams -TenantId $TenantId -ApplicationId $AppId -CertificateThumbprint $Thumbprint
+    # Alternative secret : Connect-MicrosoftTeams -TenantId $TenantId -Credential $Credential
 }
 catch {
     Write-Error "[Export] Echec de connexion : $_"

@@ -5,8 +5,11 @@
 | Placeholder | Description |
 |---|---|
 | `PLACEHOLDER_APP_ID` | GUID de ton App Registration Azure AD |
-| `PLACEHOLDER_APP_SECRET` | Secret client de l'App Registration |
 | `PLACEHOLDER_TENANT_ID` | GUID ou domaine de ton tenant (ex: contoso.onmicrosoft.com) |
+| `PLACEHOLDER_CERT_THUMBPRINT` | Thumbprint du certificat installé sur le serveur (40 caractères hex). Pour le trouver : `Get-ChildItem Cert:\LocalMachine\My` |
+
+> Le certificat doit être déclaré dans l'App Registration Azure AD (section **Certificates & secrets**).
+> Méthode alternative avec secret : décommenter les lignes correspondantes dans le script.
 
 ## Scripts\03-Notify.ps1
 
