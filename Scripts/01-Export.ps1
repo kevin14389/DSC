@@ -37,7 +37,12 @@ try {
     # Alternative secret : Connect-MicrosoftTeams -TenantId $TenantId -Credential $Credential
 }
 catch {
-    Write-Error "[Export] Echec de connexion : $_"
+    $ex = $_.Exception
+    Write-Host "[Export] Echec de connexion : $ex" -ForegroundColor Red
+    while ($ex.InnerException) {
+        $ex = $ex.InnerException
+        Write-Host "  --> Cause : $ex" -ForegroundColor Red
+    }
     exit 1
 }
 
