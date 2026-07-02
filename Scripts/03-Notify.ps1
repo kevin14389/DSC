@@ -12,13 +12,8 @@ if (-not $DiffResult.HasDrift) {
     return
 }
 
-# --- Paramètres SMTP ----------------------------------------------------------
-$SmtpServer = "PLACEHOLDER_SMTP_SERVER"       # <-- Ex : smtp.office365.com
-$SmtpPort   = 587                              # <-- Port SMTP (587 pour TLS)
-$SmtpUser   = "PLACEHOLDER_SMTP_USER"         # <-- Compte expéditeur
-$SmtpPass   = "PLACEHOLDER_SMTP_PASSWORD"     # <-- Mot de passe expéditeur
-$MailFrom   = "PLACEHOLDER_MAIL_FROM"         # <-- Adresse expéditeur
-$MailTo     = @("PLACEHOLDER_MAIL_TO")        # <-- Destinataire(s), tableau
+# --- Chargement de la configuration -------------------------------------------
+. "$PSScriptRoot\..\Config\Settings.ps1"
 
 # --- Construction du corps HTML -----------------------------------------------
 $driftRows = $DiffResult.Diffs | ForEach-Object {
@@ -34,12 +29,18 @@ $driftRows = $DiffResult.Diffs | ForEach-Object {
 "@
 }
 
+$envLabel = $DiffResult.Environment
+$envColor = if ($envLabel -eq "Production") { "#c0392b" } else { "#2980b9" }
+
 $bodyHtml = @"
 <!DOCTYPE html>
 <html>
 <head><meta charset='UTF-8'></head>
 <body style='font-family: Segoe UI, Arial, sans-serif; color: #333;'>
 
+<p style='margin-bottom:12px;'>
+    <span style='background:$envColor; color:white; padding:3px 10px; border-radius:10px; font-weight:bold; font-size:13px;'>$envLabel</span>
+</p>
 <h2 style='color:#c0392b;'>Dérive de configuration Teams détectée</h2>
 <p>Date du contrôle : <strong>$($DiffResult.CompareDate)</strong></p>
 <p>Nombre de dérives : <strong>$($DiffResult.DriftCount)</strong></p>
@@ -68,20 +69,20 @@ $bodyHtml = @"
 "@
 
 # --- Envoi --------------------------------------------------------------------
-Write-Host "[Notify] Envoi de l'email de dérive..." -ForegroundColor Cyan
+Write-Host "[Notify] Envoi de l'email de dérive ($envLabel)..." -ForegroundColor Cyan
 
 try {
-    $SecureSmtpPass = ConvertTo-SecureString $SmtpPass -AsPlainText -Force
-    $SmtpCredential = New-Object System.Management.Automation.PSCredential($SmtpUser, $SecureSmtpPass)
+    $SecureSmtpPass = ConvertTo-SecureString $SmtpConfig.Password -AsPlainText -Force
+    $SmtpCredential = New-Object System.Management.Automation.PSCredential($SmtpConfig.User, $SecureSmtpPass)
 
     Send-MailMessage `
-        -SmtpServer   $SmtpServer `
-        -Port         $SmtpPort `
+        -SmtpServer   $SmtpConfig.Server `
+        -Port         $SmtpConfig.Port `
         -UseSsl `
         -Credential   $SmtpCredential `
-        -From         $MailFrom `
-        -To           $MailTo `
-        -Subject      "[ALERTE] Dérive Teams détectée — $($DiffResult.DriftCount) écart(s) le $($DiffResult.CompareDate)" `
+        -From         $SmtpConfig.From `
+        -To           $SmtpConfig.To `
+        -Subject      "[ALERTE $envLabel] Dérive Teams — $($DiffResult.DriftCount) écart(s) le $($DiffResult.CompareDate)" `
         -Body         $bodyHtml `
         -BodyAsHtml `
         -Encoding     UTF8

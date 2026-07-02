@@ -4,16 +4,20 @@
 
 param(
     [Parameter(Mandatory)]
-    [hashtable]$DiffResult,
-
-    [string]$HistoryFile = "$PSScriptRoot\..\Data\history.json",
-    [string]$ReportFile  = "$PSScriptRoot\..\Reports\rapport.html"
+    [hashtable]$DiffResult
 )
 
 $ErrorActionPreference = "Stop"
 
+# --- Chargement de la configuration -------------------------------------------
+. "$PSScriptRoot\..\Config\Settings.ps1"
+
+$env         = $DiffResult.Environment
+$HistoryFile = "$PSScriptRoot\..\Data\history_$env.json"
+$ReportFile  = "$PSScriptRoot\..\Reports\rapport_$env.html"
+
 # --- Mise à jour de l'historique ----------------------------------------------
-Write-Host "[Report] Mise à jour de l'historique..." -ForegroundColor Cyan
+Write-Host "[Report] Mise à jour de l'historique ($env)..." -ForegroundColor Cyan
 
 if (Test-Path $HistoryFile) {
     $history = Get-Content $HistoryFile -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -92,6 +96,8 @@ $statusBadge = if ($DiffResult.HasDrift) {
 
 $reportDate  = Get-Date -Format "dd/MM/yyyy HH:mm:ss"
 $moduleLabel = if ($teamsModule) { "MicrosoftTeams v$currentDscVersion" } else { "Module introuvable" }
+$envColor    = if ($env -eq "Production") { "#922b21" } else { "#1a5276" }
+$envBadge    = "<span style='background:$envColor; color:white; padding:2px 10px; border-radius:10px; font-size:13px; font-weight:600;'>$env</span>"
 
 $html = @"
 <!DOCTYPE html>
@@ -99,7 +105,7 @@ $html = @"
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport Teams DSC</title>
+    <title>Rapport Teams DSC — $env</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; padding: 20px; }
@@ -125,7 +131,7 @@ $html = @"
 <div class="container">
 
     <header>
-        <h1>Rapport de surveillance — Configuration Teams</h1>
+        <h1>Rapport de surveillance — Configuration Teams &nbsp; $envBadge</h1>
         <p>Généré le $reportDate &nbsp;|&nbsp; Module : $moduleLabel</p>
     </header>
 

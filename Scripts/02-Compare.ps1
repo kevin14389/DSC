@@ -12,6 +12,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# --- Chargement de la configuration -------------------------------------------
+. "$PSScriptRoot\..\Config\Settings.ps1"
+
 # --- Chargement des données ---------------------------------------------------
 Write-Host "[Compare] Chargement du snapshot : $SnapshotFile" -ForegroundColor Cyan
 
@@ -93,6 +96,7 @@ $diffFile  = Join-Path $DiffDir "diff_$timestamp.json"
 
 $diffResult = @{
     CompareDate  = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+    Environment  = $Environment
     SnapshotFile = $SnapshotFile
     HasDrift     = $hasDrift
     DriftCount   = $allDiffs.Count

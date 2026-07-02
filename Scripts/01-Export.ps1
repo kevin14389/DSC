@@ -8,33 +8,29 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# --- Chargement de la configuration -------------------------------------------
+. "$PSScriptRoot\..\Config\Settings.ps1"
+
 # --- Connexion au tenant -------------------------------------------------------
-Write-Host "[Export] Connexion au tenant..." -ForegroundColor Cyan
+Write-Host "[Export] Connexion au tenant $Environment..." -ForegroundColor Cyan
 
-# Méthode recommandée : certificat (plus sécurisé, pas d'expiration de secret)
-$AppId       = "PLACEHOLDER_APP_ID"          # <-- Ton AppId (GUID de l'App Registration)
-$TenantId    = "PLACEHOLDER_TENANT_ID"       # <-- Ton TenantId (GUID ou domaine)
-$Thumbprint  = "PLACEHOLDER_CERT_THUMBPRINT" # <-- Thumbprint du certificat (40 caractères hex)
-
-# Méthode alternative : secret (décommenter et commenter le bloc certificat si nécessaire)
-# $AppSecret    = "PLACEHOLDER_APP_SECRET"
-# $SecureSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
-# $Credential   = New-Object System.Management.Automation.PSCredential($AppId, $SecureSecret)
-
-# Chargement explicite du certificat depuis le magasin Windows
-# Le module MicrosoftTeams attend un objet X509Certificate2, pas juste le thumbprint
-$Certificate = Get-ChildItem -Path "Cert:\CurrentUser\My\$Thumbprint" -ErrorAction SilentlyContinue
+# Chargement du certificat depuis le magasin Windows
+$Certificate = Get-ChildItem -Path "Cert:\CurrentUser\My\$($ActiveConfig.Thumbprint)" -ErrorAction SilentlyContinue
 if (-not $Certificate) {
-    $Certificate = Get-ChildItem -Path "Cert:\LocalMachine\My\$Thumbprint" -ErrorAction SilentlyContinue
+    $Certificate = Get-ChildItem -Path "Cert:\LocalMachine\My\$($ActiveConfig.Thumbprint)" -ErrorAction SilentlyContinue
 }
 if (-not $Certificate) {
-    Write-Error "[Export] Certificat introuvable (thumbprint : $Thumbprint). Vérifier qu'il est bien importé dans Cert:\CurrentUser\My ou Cert:\LocalMachine\My."
+    Write-Error "[Export] Certificat introuvable (thumbprint : $($ActiveConfig.Thumbprint)). Vérifier Cert:\CurrentUser\My ou Cert:\LocalMachine\My."
     exit 1
 }
 
+# Méthode alternative : secret (décommenter si nécessaire)
+# $SecureSecret = ConvertTo-SecureString $ActiveConfig.AppSecret -AsPlainText -Force
+# $Credential   = New-Object System.Management.Automation.PSCredential($ActiveConfig.AppId, $SecureSecret)
+
 try {
-    Connect-MicrosoftTeams -TenantId $TenantId -ApplicationId $AppId -Certificate $Certificate
-    # Alternative secret : Connect-MicrosoftTeams -TenantId $TenantId -Credential $Credential
+    Connect-MicrosoftTeams -TenantId $ActiveConfig.TenantId -ApplicationId $ActiveConfig.AppId -Certificate $Certificate
+    # Alternative secret : Connect-MicrosoftTeams -TenantId $ActiveConfig.TenantId -Credential $Credential
 }
 catch {
     $ex = $_.Exception
@@ -51,6 +47,7 @@ Write-Host "[Export] Récupération des configurations Teams..." -ForegroundColo
 
 $snapshot = @{
     ExportDate               = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+    Environment              = $Environment
     TeamsClientConfiguration = (Get-CsTeamsClientConfiguration   -Identity Global | Select-Object * | ConvertTo-Json -Depth 5 | ConvertFrom-Json)
     TeamsMeetingPolicy       = (Get-CsTeamsMeetingPolicy          -Identity Global | Select-Object * | ConvertTo-Json -Depth 5 | ConvertFrom-Json)
     TeamsMessagingPolicy     = (Get-CsTeamsMessagingPolicy         -Identity Global | Select-Object * | ConvertTo-Json -Depth 5 | ConvertFrom-Json)
@@ -59,13 +56,13 @@ $snapshot = @{
     TeamsFeedbackPolicy      = (Get-CsTeamsFeedbackPolicy          -Identity Global | Select-Object * | ConvertTo-Json -Depth 5 | ConvertFrom-Json)
 }
 
-# --- Sauvegarde du snapshot ----------------------------------------------------
+# --- Sauvegarde du snapshot ---------------------------------------------------
 if (-not (Test-Path $SnapshotDir)) {
     New-Item -ItemType Directory -Path $SnapshotDir -Force | Out-Null
 }
 
 $timestamp    = Get-Date -Format "yyyyMMdd_HHmmss"
-$snapshotFile = Join-Path $SnapshotDir "snapshot_$timestamp.json"
+$snapshotFile = Join-Path $SnapshotDir "snapshot_${Environment}_$timestamp.json"
 
 $snapshot | ConvertTo-Json -Depth 10 | Set-Content -Path $snapshotFile -Encoding UTF8
 
